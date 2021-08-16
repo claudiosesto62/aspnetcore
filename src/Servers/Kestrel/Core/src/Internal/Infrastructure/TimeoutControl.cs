@@ -331,9 +331,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure
             ResetTimeout(timeSpan.Ticks, TimeoutReason.TimeoutFeature);
         }
 
-        public long GetWriteTimingTimeoutTimestamp()
+        public long GetResponseDrainDeadline(long ticks, MinDataRate minRate)
         {
-            return _writeTimingTimeoutTimestamp;
+            var timestamp = Math.Max(_writeTimingTimeoutTimestamp, ticks + minRate.GracePeriod.Ticks);
+
+            return timestamp >= 0 ? timestamp : long.MaxValue;
         }
     }
 }

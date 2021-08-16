@@ -24,7 +24,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Microbenchmarks
         {
         }
 
-        public long GetWriteTimingTimeoutTimestamp()
+        public long GetResponseDrainDeadline(long ticks, MinDataRate minRate)
         {
             return 0;
         }

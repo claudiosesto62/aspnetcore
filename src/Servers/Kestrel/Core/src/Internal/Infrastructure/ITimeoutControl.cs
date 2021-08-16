@@ -26,6 +26,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure
         void StartTimingWrite();
         void StopTimingWrite();
         void BytesWrittenToBuffer(MinDataRate minRate, long count);
-        long GetWriteTimingTimeoutTimestamp();
+        long GetResponseDrainDeadline(long ticks, MinDataRate minRate);
     }
 }

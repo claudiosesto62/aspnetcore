@@ -224,16 +224,13 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
 
                         if (stream.StreamTimeoutTicks == default)
                         {
-                            var expirationTicks = Math.Max(
-                                _context.TimeoutControl.GetWriteTimingTimeoutTimestamp(),
-                                ticks + minDataRate.GracePeriod.Ticks);
-
-                            stream.StreamTimeoutTicks = expirationTicks >= 0 ? expirationTicks : long.MaxValue;
+                            stream.StreamTimeoutTicks = _context.TimeoutControl.GetResponseDrainDeadline(ticks, minDataRate);
                         }
 
                         if (stream.StreamTimeoutTicks < ticks)
                         {
-                            stream.Abort(new ConnectionAbortedException(CoreStrings.ConnectionTimedBecauseResponseMininumDataRateNotSatisfied), Http3ErrorCode.RequestCancelled);
+                            // Cancel connection to be consistent with other data rate limits.
+                            Abort(new ConnectionAbortedException(CoreStrings.ConnectionTimedBecauseResponseMininumDataRateNotSatisfied), Http3ErrorCode.InternalError);
                         }
                     }
                 }
@@ -449,7 +446,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
 
             if (clientAbort)
             {
-                return new ConnectionAbortedException("The client closed the HTTP/3 connection.", error!);
+                return new ConnectionAbortedException(CoreStrings.ConnectionAbortedByClient, error!);
             }
 
             return new ConnectionAbortedException(CoreStrings.Http3ConnectionFaulted, error!);

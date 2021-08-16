@@ -1385,9 +1385,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
                 _realTimeoutControl.Tick(now);
             }
 
-            public long GetWriteTimingTimeoutTimestamp()
+            public long GetResponseDrainDeadline(long ticks, MinDataRate minRate)
             {
-                return _realTimeoutControl.GetWriteTimingTimeoutTimestamp();
+                return _realTimeoutControl.GetResponseDrainDeadline(ticks, minRate);
             }
         }
     }

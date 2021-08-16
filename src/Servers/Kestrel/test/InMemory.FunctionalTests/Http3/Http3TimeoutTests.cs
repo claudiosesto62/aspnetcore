@@ -270,10 +270,13 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Tests
 
             Http3Api.TriggerTick(now + limits.MinResponseDataRate.GracePeriod + TimeSpan.FromTicks(1));
 
-            await requestStream.WaitForStreamErrorAsync(
-                Http3ErrorCode.RequestCancelled,
-                AssertExpectedErrorMessages,
-                CoreStrings.ConnectionTimedBecauseResponseMininumDataRateNotSatisfied);
+            requestStream.StartStreamDisposeTcs.TrySetResult();
+
+            await Http3Api.WaitForConnectionErrorAsync<ConnectionAbortedException>(
+                ignoreNonGoAwayFrames: false,
+                expectedLastStreamId: 4,
+                Http3ErrorCode.InternalError,
+                expectedErrorMessage: CoreStrings.ConnectionTimedBecauseResponseMininumDataRateNotSatisfied);
         }
 
         private class EchoAppWithNotification
