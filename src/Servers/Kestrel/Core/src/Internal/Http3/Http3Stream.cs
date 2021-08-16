@@ -499,6 +499,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                     // Completing the stream needs to happen in the middle of DisposeAsync.
                     // After the stream has drained but before the stream is returned to the pool.
                     // OnCompleted callback executes in the right place.
+                    //
+                    // TODO consider adding new feature to remove need for this:
+                    // https://github.com/dotnet/aspnetcore/issues/35400
                     _context.StreamContext.Features.Get<IConnectionCompleteFeature>()!.OnCompleted(static (state) =>
                     {
                         var s = (Http3Stream)state;
