@@ -333,9 +333,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure
 
         public long GetResponseDrainDeadline(long ticks, MinDataRate minRate)
         {
-            var timestamp = Math.Max(_writeTimingTimeoutTimestamp, ticks + minRate.GracePeriod.Ticks);
+            // On grace period overflow, use max value.
+            var gracePeriod = ticks + minRate.GracePeriod.Ticks;
+            gracePeriod = gracePeriod >= 0 ? gracePeriod : long.MaxValue;
 
-            return timestamp >= 0 ? timestamp : long.MaxValue;
+            return Math.Max(_writeTimingTimeoutTimestamp, gracePeriod);
         }
     }
 }
