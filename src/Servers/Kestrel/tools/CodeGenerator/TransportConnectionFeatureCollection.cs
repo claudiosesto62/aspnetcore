@@ -24,8 +24,7 @@ namespace CodeGenerator
                 "IProtocolErrorCodeFeature",
                 "IStreamDirectionFeature",
                 "IStreamIdFeature",
-                "IStreamAbortFeature",
-                "IConnectionCompleteFeature"
+                "IStreamAbortFeature"
             };
 
             var implementedFeatures = new[]

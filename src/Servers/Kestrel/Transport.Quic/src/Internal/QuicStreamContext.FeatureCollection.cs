@@ -1,17 +1,14 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Net.Sockets;
 using Microsoft.AspNetCore.Connections;
 using Microsoft.AspNetCore.Connections.Features;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.Internal
 {
-    internal sealed partial class QuicStreamContext : IPersistentStateFeature, IStreamDirectionFeature, IProtocolErrorCodeFeature, IStreamIdFeature, IStreamAbortFeature, IConnectionCompleteFeature
+    internal sealed partial class QuicStreamContext : IPersistentStateFeature, IStreamDirectionFeature, IProtocolErrorCodeFeature, IStreamIdFeature, IStreamAbortFeature
     {
         private IDictionary<object, object?>? _persistentState;
-        private Stack<KeyValuePair<Func<object, Task>, object>>? _onCompleted;
 
         public bool CanRead { get; private set; }
         public bool CanWrite { get; private set; }
@@ -69,15 +66,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.Internal
             }
         }
 
-        public void OnCompleted(Func<object, Task> callback, object state)
-        {
-            if (_onCompleted == null)
-            {
-                _onCompleted = new Stack<KeyValuePair<Func<object, Task>, object>>();
-            }
-            _onCompleted.Push(new KeyValuePair<Func<object, Task>, object>(callback, state));
-        }
-
         private void InitializeFeatures()
         {
             _currentIPersistentStateFeature = this;
@@ -85,7 +73,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.Internal
             _currentIProtocolErrorCodeFeature = this;
             _currentIStreamIdFeature = this;
             _currentIStreamAbortFeature = this;
-            _currentIConnectionCompleteFeature = this;
         }
     }
 }

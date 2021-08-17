@@ -496,25 +496,26 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http3
                 }
                 finally
                 {
-                    // Completing the stream needs to happen in the middle of DisposeAsync.
-                    // After the stream has drained but before the stream is returned to the pool.
-                    // OnCompleted callback executes in the right place.
-                    //
-                    // TODO consider adding new feature to remove need for this:
-                    // https://github.com/dotnet/aspnetcore/issues/35400
-                    _context.StreamContext.Features.Get<IConnectionCompleteFeature>()!.OnCompleted(static (state) =>
-                    {
-                        var s = (Http3Stream)state;
-
-                        s.ApplyCompletionFlag(StreamCompletionFlags.Completed);
-
-                        // Tells the connection to remove the stream from its active collection.
-                        s._context.StreamLifetimeHandler.OnStreamCompleted(s);
-
-                        return Task.CompletedTask;
-                    }, this);
-
+                    // Drain transports and dispose.
                     await _context.StreamContext.DisposeAsync();
+
+                    // Tells the connection to remove the stream from its active collection.
+                    ApplyCompletionFlag(StreamCompletionFlags.Completed);
+                    _context.StreamLifetimeHandler.OnStreamCompleted(this);
+
+                    // TODO this is a hack for .NET 6 pooling.
+                    //
+                    // Pooling needs to happen after transports have been drained and stream
+                    // has been completed and is no longer active. All of this logic can't
+                    // be placed in ConnectionContext.DisposeAsync. Instead, QuicStreamContext
+                    // has pooling happen in QuicStreamContext.Dispose.
+                    //
+                    // ConnectionContext only implements IDisposableAsync by default. Only
+                    // QuicStreamContext should pass this check.
+                    if (_context.StreamContext is IDisposable disposableStream)
+                    {
+                        disposableStream.Dispose();
+                    }
                 }
             }
         }

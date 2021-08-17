@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.Internal
 {
-    internal partial class QuicStreamContext : TransportConnection, IPooledStream
+    internal partial class QuicStreamContext : TransportConnection, IPooledStream, IDisposable
     {
         // Internal for testing.
         internal Task _processingTask = Task.CompletedTask;
@@ -444,12 +444,18 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Transport.Quic.Internal
 
             lock (_shutdownLock)
             {
+                if (!CanReuse)
+                {
+                    DisposeCore();
+                }
+
                 _stream.Dispose();
                 _stream = null!;
             }
+        }
 
-            await ConnectionCompletion.FireOnCompletedAsync(_log, _onCompleted);
-
+        public void Dispose()
+        {
             if (!_connection.TryReturnStream(this))
             {
                 // Dispose when one of:
